@@ -3,51 +3,83 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sb
 
+st.set_page_config(page_title="Wine Rating Dashboard", layout="wide")
+
 st.title("🍷 Wine Rating Data Analysis Dashboard")
+st.markdown("Explore wine rating distribution and premium insights.")
 
-# Upload file
-uploaded_file = st.file_uploader("Upload Wine Dataset (CSV or Excel)", type=["csv","xlsx"])
+# Sidebar Options
+st.sidebar.header("Data Source")
 
-if uploaded_file is not None:
+option = st.sidebar.radio(
+    "Choose Dataset:",
+    ("Use Sample Dataset", "Upload Your Own Dataset")
+)
+
+# Load Data
+if option == "Use Sample Dataset":
+    df = pd.read_csv("wine_dataset.csv")
+    st.success("Using built-in sample dataset")
+
+else:
+    uploaded_file = st.sidebar.file_uploader("Upload CSV or Excel", type=["csv","xlsx"])
     
-    # Read file
-    if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
+    if uploaded_file is not None:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+        st.success("Uploaded dataset successfully")
     else:
-        df = pd.read_excel(uploaded_file)
+        st.info("Please upload a dataset from sidebar to continue.")
+        st.stop()
+
+# Data Cleaning
+df = df.fillna(0)
+
+# Layout Columns
+col1, col2 = st.columns(2)
+
+# 📊 Total Wines
+with col1:
+    st.subheader("Total Wines by Type")
+    totals = df.drop("points", axis=1).sum().sort_values(ascending=False)
     
-    # Fill missing values
-    df = df.fillna(0)
-
-    st.subheader("Dataset Preview")
-    st.dataframe(df.head())
-
-    # Total wines per type
-    st.subheader("📊 Total Wines per Type")
-    totals = df.drop("points", axis=1).sum()
     fig1, ax1 = plt.subplots()
-    ax1.bar(totals.index, totals.values, color="purple")
+    ax1.bar(totals.index, totals.values, color="#8E44AD")
     plt.xticks(rotation=45)
     st.pyplot(fig1)
 
-    # Line chart
-    st.subheader("📈 Wine Rating Distribution")
+# 📈 Rating Distribution
+with col2:
+    st.subheader("Wine Rating Distribution")
+    
     fig2, ax2 = plt.subplots()
     for col in df.columns[1:]:
         ax2.plot(df["points"], df[col], marker='o', label=col)
-    ax2.legend()
+    
     ax2.set_xlabel("Rating Points")
     ax2.set_ylabel("Number of Wines")
+    ax2.legend()
     st.pyplot(fig2)
 
-    # Premium segment
-    st.subheader("🔥 Premium Wines (90+ Ratings)")
-    premium = df[df["points"] >= 90]
-    premium_totals = premium.drop("points", axis=1).sum()
-    fig3, ax3 = plt.subplots()
-    ax3.bar(premium_totals.index, premium_totals.values, color="darkred")
-    plt.xticks(rotation=45)
-    st.pyplot(fig3)
+# 🔥 Premium Segment
+st.subheader("Premium Wines (90+ Ratings)")
 
-else:
-    st.info("Please upload a wine dataset to begin analysis.")
+premium = df[df["points"] >= 90]
+premium_totals = premium.drop("points", axis=1).sum().sort_values(ascending=False)
+
+fig3, ax3 = plt.subplots()
+ax3.bar(premium_totals.index, premium_totals.values, color="#5B2C6F")
+plt.xticks(rotation=45)
+st.pyplot(fig3)
+
+# 📊 Heatmap
+st.subheader("Wine Ratings Heatmap")
+
+fig4, ax4 = plt.subplots(figsize=(10,6))
+sb.heatmap(df.set_index("points"), cmap="Purples", ax=ax4)
+st.pyplot(fig4)
+
+st.markdown("---")
+st.markdown("👩‍💻 Built with Streamlit | Data Analysis by Atharvi")

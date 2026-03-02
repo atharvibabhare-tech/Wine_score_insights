@@ -33,3 +33,5 @@ about rating distribution, premium segment dominance, and overall wine type tren
 ---
 
 👩‍💻 Author: Atharvi
+## 🌐 Live Demo
+[Click Here to View Live App](https://winescoreinsights-jv6yxj6lp3yitpyw5e8vhu.streamlit.app/)
